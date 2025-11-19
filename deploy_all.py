@@ -137,9 +137,9 @@ def write_config_files(s3_bucket, user_pool_id, client_id, rds_info):
         "db_port": 3306
     }
 
-    with open("../config/aws_config.json", "w") as f:
+    with open("./config/aws_config.json", "w") as f:
         json.dump(aws_config, f, indent=4)
-    with open("../config/db_config.json", "w") as f:
+    with open("./config/db_config.json", "w") as f:
         json.dump(db_config, f, indent=4)
 
     print("[CONFIG] Config files created at ../config/aws_config.json and ../config/db_config.json")
