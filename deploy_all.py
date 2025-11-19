@@ -6,7 +6,7 @@ import uuid
 import botocore
 
 # Ensure config directory exists
-os.makedirs("../config", exist_ok=True)
+os.makedirs("./config", exist_ok=True)
 
 region = "us-east-1"
 
@@ -37,7 +37,7 @@ def create_s3_bucket(bucket_name, region="us-east-1"):
 # 2. Create Cognito User Pool + App Client
 # -------------------------
 def create_cognito_user_pool(pool_name="CloudGalleryUsers"):
-    cognito = boto3.client("cognito-idp", region_name=REGION)
+    cognito = boto3.client("cognito-idp", region_name=region)
 
     # Create User Pool
     pool = cognito.create_user_pool(
@@ -70,8 +70,8 @@ def create_rds_instance(db_id="cloudgallery-db",
                         username="admin",
                         password="CloudGallery123!",
                         db_name="cloudgallery"):
-    ec2 = boto3.client("ec2", region_name=REGION)
-    rds = boto3.client("rds", region_name=REGION)
+    ec2 = boto3.client("ec2", region_name=region)
+    rds = boto3.client("rds", region_name=region)
 
     # Create security group
     sg = ec2.create_security_group(
@@ -120,7 +120,7 @@ def create_rds_instance(db_id="cloudgallery-db",
 # -------------------------
 def write_config_files(s3_bucket, user_pool_id, client_id, rds_info):
     aws_config = {
-        "region": REGION,
+        "region": region,
         "s3_bucket": s3_bucket,
         "user_pool_id": user_pool_id,
         "user_pool_client_id": client_id,
@@ -150,7 +150,8 @@ def write_config_files(s3_bucket, user_pool_id, client_id, rds_info):
 def main():
     print("=== DEPLOYING CLOUDGALLERY INFRASTRUCTURE ===")
     
-    s3_bucket = create_s3_bucket()
+    bucket_name = "cloudgallery-" + str(uuid.uuid4())[:8]
+    s3_bucket = create_s3_bucket(bucket_name)
     user_pool_id, client_id = create_cognito_user_pool()
     rds_info = create_rds_instance()
     write_config_files(s3_bucket, user_pool_id, client_id, rds_info)
