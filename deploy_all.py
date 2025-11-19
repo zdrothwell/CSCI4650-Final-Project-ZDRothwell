@@ -8,23 +8,28 @@ import botocore
 # Ensure config directory exists
 os.makedirs("../config", exist_ok=True)
 
-REGION = "us-east-1"
+region = "us-east-1"
 
 # -------------------------
 # 1. Create S3 bucket
 # -------------------------
-def create_s3_bucket(prefix="cloudgallery-images"):
-    s3 = boto3.client("s3", region_name=REGION)
-    bucket_name = f"{prefix}-{uuid.uuid4().hex[:8]}"
+def create_s3_bucket(bucket_name, region="us-east-1"):
+    s3 = boto3.client("s3", region_name=region)
 
     try:
-        s3.create_bucket(
-            Bucket=bucket_name,
-            CreateBucketConfiguration={"LocationConstraint": REGION}
-        )
+        if region == "us-east-1":
+            # Must NOT send LocationConstraint
+            s3.create_bucket(Bucket=bucket_name)
+        else:
+            s3.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={"LocationConstraint": region}
+            )
+
         print(f"[S3] Bucket created: {bucket_name}")
         return bucket_name
-    except botocore.exceptions.ClientError as e:
+
+    except Exception as e:
         print("[S3] Error:", e)
         return None
 
