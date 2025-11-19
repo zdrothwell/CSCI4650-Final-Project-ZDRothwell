@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gallery</title>
+</head>
+<body>
+
+<h1>Image Gallery</h1>
+
+<a href="/upload">Upload New Image</a><br><br>
+
+{% for img in images %}
+    <div style="margin-bottom: 20px;">
+        <h3>{{ img.title }}</h3>
+        <img src="{{ img.image_url }}" width="300"><br>
+        <p>{{ img.description }}</p>
+        <small>Uploaded by {{ img.user_email }} on {{ img.upload_date }}</small>
+    </div>
+{% endfor %}
+
+</body>
+</html>

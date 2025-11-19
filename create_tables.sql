@@ -1,0 +1,8 @@
+CREATE TABLE images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_email VARCHAR(255) NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
