@@ -43,28 +43,15 @@
     {% endif %}
 
     <form action="/signup" method="POST">
+        <label>Username:</label>
+        <input type="text" name="username" required>
+
+        <label>Password:</label>
+        <input type="password" name="password" required>
         
-        <div class="mb-3">
-            <label class="form-label">Email Address</label>
-            <input type="email" 
-                   name="email" 
-                   class="form-control" 
-                   placeholder="Enter your email"
-                   required>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" 
-                   name="password" 
-                   class="form-control" 
-                   placeholder="Create a password"
-                   required>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Sign Up</button>
-
+        <button type="submit">Sign Up</button>
     </form>
+
 
     <p class="mt-3 text-center">
         Already have an account?  

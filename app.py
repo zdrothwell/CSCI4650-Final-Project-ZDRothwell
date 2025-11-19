@@ -1,11 +1,9 @@
 import os
 import uuid
-from flask import Flask, render_template, request, redirect, jsonify, session
+from flask import Flask, render_template, request, redirect, session
 import boto3
 import mysql.connector
 from botocore.exceptions import ClientError
-
-from flask import Flask
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -28,7 +26,6 @@ COGNITO_CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID")
 s3 = boto3.client("s3", region_name=REGION)
 cognito = boto3.client("cognito-idp", region_name=REGION)
 
-
 # ------------------ DATABASE CONNECTION ------------------
 def get_db():
     return mysql.connector.connect(
@@ -38,63 +35,70 @@ def get_db():
         database=RDS_DB,
     )
 
-
 # ------------------ ROUTES ------------------
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-
 @app.route("/login", methods=["GET"])
 def login_page():
     return render_template("login.html")
 
-
 @app.route("/login", methods=["POST"])
 def login_user():
-    email = request.form["email"]
+    username = request.form["username"]
     password = request.form["password"]
 
     try:
         resp = cognito.initiate_auth(
             ClientId=COGNITO_CLIENT_ID,
             AuthFlow="USER_PASSWORD_AUTH",
-            AuthParameters={"USERNAME": email, "PASSWORD": password},
+            AuthParameters={"USERNAME": username, "PASSWORD": password},
         )
-        session["email"] = email
+        session["username"] = username
         return redirect("/gallery")
-
     except ClientError:
-        return "Login failed. Check your email/password."
+        return "Login failed. Check your username/password."
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup_user():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        try:
+            cognito.sign_up(
+                ClientId=COGNITO_CLIENT_ID,
+                Username=username,
+                Password=password
+            )
+            return redirect("/login")
+        except ClientError as e:
+            return f"Signup failed: {str(e)}"
+
+    return render_template("signup.html")
 
 @app.route("/upload", methods=["GET"])
 def upload_page():
-    if "email" not in session:
+    if "username" not in session:
         return redirect("/login")
     return render_template("upload.html")
 
-
 @app.route("/upload", methods=["POST"])
 def upload_image():
-    if "email" not in session:
+    if "username" not in session:
         return redirect("/login")
 
     file = request.files["file"]
     title = request.form["title"]
     desc = request.form["description"]
-    user_email = session["email"]
+    username = session["username"]
 
-    # Generate unique filename
     unique_name = f"{uuid.uuid4()}_{file.filename}"
-
-    # Upload to S3
     s3.upload_fileobj(file, S3_BUCKET, unique_name)
-
     file_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{unique_name}"
 
-    # Insert metadata into RDS
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
@@ -102,7 +106,7 @@ def upload_image():
         INSERT INTO images (user_email, image_url, title, description) 
         VALUES (%s, %s, %s, %s)
         """,
-        (user_email, file_url, title, desc),
+        (username, file_url, title, desc),
     )
     db.commit()
     cursor.close()
@@ -110,10 +114,9 @@ def upload_image():
 
     return redirect("/gallery")
 
-
 @app.route("/gallery")
 def gallery():
-    if "email" not in session:
+    if "username" not in session:
         return redirect("/login")
 
     db = get_db()
@@ -124,7 +127,6 @@ def gallery():
     db.close()
 
     return render_template("gallery.html", images=images)
-
 
 # Start app
 if __name__ == "__main__":

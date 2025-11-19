@@ -40,7 +40,7 @@ def create_cognito_user_pool(pool_name="CloudGalleryUsers"):
         # Create user pool
         pool = cognito.create_user_pool(
             PoolName=pool_name,
-            AutoVerifiedAttributes=["email"]
+            AutoVerifiedAttributes=[]
         )
         user_pool_id = pool["UserPool"]["Id"]
         print(f"[Cognito] User Pool ID: {user_pool_id}")
