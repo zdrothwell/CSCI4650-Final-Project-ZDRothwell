@@ -5,6 +5,7 @@ import boto3
 import mysql.connector
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -27,9 +28,9 @@ try:
 except Exception as e:
     print(f"[CONFIG] Failed to load generated config files: {e}")
 
-
+    
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET") or os.environ.get("SESSION_SECRET") or os.urandom(24)
+app.secret_key = os.urandom(24)
 
 # ---- AWS CONFIG ----
 REGION = os.environ.get("AWS_REGION")
@@ -91,11 +92,26 @@ def signup_user():
         password = request.form["password"]
 
         try:
+            # Create the user in Cognito
             cognito.sign_up(
                 ClientId=COGNITO_CLIENT_ID,
                 Username=username,
                 Password=password
             )
+
+            # Auto-confirm the user so they can log in immediately (DEV/testing)
+            try:
+                if COGNITO_POOL_ID:
+                    cognito.admin_confirm_sign_up(
+                        UserPoolId=COGNITO_POOL_ID,
+                        Username=username
+                    )
+                    app.logger.info(f"[Cognito] Auto-confirmed user {username}")
+                else:
+                    app.logger.warning("[Cognito] COGNITO_POOL_ID not set; skipping admin_confirm_sign_up")
+            except ClientError as e:
+                app.logger.warning(f"[Cognito] admin_confirm_sign_up failed for {username}: {e}")
+
             return redirect("/login")
         except ClientError as e:
             return f"Signup failed: {str(e)}"

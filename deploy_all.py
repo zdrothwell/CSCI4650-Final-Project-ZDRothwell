@@ -19,8 +19,8 @@ os.makedirs("./config", exist_ok=True)
 def create_s3_bucket(bucket_name):
     s3 = boto3.client("s3", region_name=region)
     try:
+        # Create bucket (handle us-east-1 special case)
         if region == "us-east-1":
-            # us-east-1 cannot have LocationConstraint
             s3.create_bucket(Bucket=bucket_name)
         else:
             s3.create_bucket(
@@ -28,6 +28,57 @@ def create_s3_bucket(bucket_name):
                 CreateBucketConfiguration={"LocationConstraint": region}
             )
         print(f"[S3] Bucket created: {bucket_name}")
+
+        # Ensure public access is not blocked (allow public policies/ACLs).
+        # Attempt to delete any PublicAccessBlock; if not supported, explicitly set flags to False.
+        try:
+            s3.delete_public_access_block(Bucket=bucket_name)
+            print(f"[S3] Deleted public access block for {bucket_name}")
+        except Exception:
+            try:
+                s3.put_public_access_block(
+                    Bucket=bucket_name,
+                    PublicAccessBlockConfiguration={
+                        "BlockPublicAcls": False,
+                        "IgnorePublicAcls": False,
+                        "BlockPublicPolicy": False,
+                        "RestrictPublicBuckets": False
+                    }
+                )
+                print(f"[S3] Put PublicAccessBlock (all false) for {bucket_name}")
+            except Exception as e:
+                print(f"[S3] Warning: could not change public access block: {e}")
+
+        # Make bucket ACL public-read so object list/head is allowed (DEV only)
+        try:
+            s3.put_bucket_acl(Bucket=bucket_name, ACL="public-read")
+            print(f"[S3] Bucket ACL set to public-read for {bucket_name}")
+        except Exception as e:
+            print(f"[S3] Warning: failed to set bucket ACL: {e}")
+
+        # Apply permissive bucket policy to allow PutObject/PutObjectAcl/GetObject for objects in the bucket.
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "AddPerm",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": [
+                        "s3:PutObject",
+                        "s3:PutObjectAcl",
+                        "s3:GetObject"
+                    ],
+                    "Resource": f"arn:aws:s3:::{bucket_name}/*"
+                }
+            ]
+        }
+        try:
+            s3.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps(policy))
+            print(f"[S3] Bucket policy applied to {bucket_name}")
+        except Exception as e:
+            print(f"[S3] Failed to apply bucket policy: {e}")
+
         return bucket_name
     except Exception as e:
         print(f"[S3] Error creating bucket: {e}")
