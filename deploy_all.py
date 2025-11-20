@@ -4,6 +4,8 @@ import json
 import os
 import uuid
 import botocore
+import mysql.connector
+from mysql.connector import Error as MySQLError
 
 # -------------------------
 # CONFIG
@@ -70,7 +72,9 @@ def create_cognito_user_pool(pool_name="CloudGalleryUsers"):
 def create_rds_instance(db_id="cloudgallery-db",
                         username="admin",
                         password="CloudGallery123!",
-                        db_name="cloudgallery"):
+                        db_name="cloudgallery",
+                        wait_timeout=900,
+                        poll_interval=15):
     ec2 = boto3.client("ec2", region_name=region)
     rds = boto3.client("rds", region_name=region)
     try:
@@ -91,28 +95,91 @@ def create_rds_instance(db_id="cloudgallery-db",
         )
         print(f"[RDS] Security Group created: {sg_id}")
 
-        # Create DB instance
-        rds.create_db_instance(
-            DBName=db_name,
-            DBInstanceIdentifier=db_id,
-            AllocatedStorage=20,
-            DBInstanceClass="db.t3.micro",
-            Engine="mysql",
-            MasterUsername=username,
-            MasterUserPassword=password,
-            VpcSecurityGroupIds=[sg_id],
-            PubliclyAccessible=True
-        )
-        print("[RDS] DB instance creation started (may take several minutes)")
+        # Create DB instance (may raise if instance already exists)
+        try:
+            rds.create_db_instance(
+                DBName=db_name,
+                DBInstanceIdentifier=db_id,
+                AllocatedStorage=20,
+                DBInstanceClass="db.t3.micro",
+                Engine="mysql",
+                MasterUsername=username,
+                MasterUserPassword=password,
+                VpcSecurityGroupIds=[sg_id],
+                PubliclyAccessible=True
+            )
+            print("[RDS] DB instance creation started (may take several minutes)")
+        except botocore.exceptions.ClientError as e:
+            # If instance already exists, continue to poll for endpoint
+            code = e.response.get("Error", {}).get("Code", "")
+            if code == "DBInstanceAlreadyExists":
+                print("[RDS] DB instance already exists, attempting to discover endpoint")
+            else:
+                raise
 
-        # Return info immediately
-        return "pending", username, password, db_name
+        # Poll until instance is available or timeout
+        start = time.time()
+        while True:
+            try:
+                resp = rds.describe_db_instances(DBInstanceIdentifier=db_id)
+                inst = resp["DBInstances"][0]
+                status = inst.get("DBInstanceStatus")
+                print(f"[RDS] status={status}")
+                if status == "available" and "Endpoint" in inst and "Address" in inst["Endpoint"]:
+                    endpoint = inst["Endpoint"]["Address"]
+                    print(f"[RDS] Endpoint available: {endpoint}")
+                    return endpoint, username, password, db_name
+            except botocore.exceptions.ClientError as e:
+                # If not found yet, continue polling
+                print(f"[RDS] describe_db_instances: {e}")
+            if time.time() - start > wait_timeout:
+                print("[RDS] Timeout waiting for DB to become available; returning placeholder 'pending'")
+                return "pending", username, password, db_name
+            time.sleep(poll_interval)
+
     except Exception as e:
         print(f"[RDS] Error: {e}")
         return None, username, password, db_name
 
 # -------------------------
-# 4. Write Config Files
+# NEW: run create_tables.sql once DB is ready
+# -------------------------
+def run_sql_file(host, user, password, db_name, sql_path="./create_tables.sql"):
+    abs_sql = os.path.abspath(sql_path)
+    print(f"[DB INIT] Attempting to run SQL file: {abs_sql}")
+    if not os.path.exists(abs_sql):
+        print(f"[DB INIT] SQL file not found at {abs_sql}, skipping DB init.")
+        return False
+
+    try:
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=db_name,
+            connection_timeout=10
+        )
+        cursor = conn.cursor()
+        with open(abs_sql, "r", encoding="utf-8") as f:
+            sql = f.read()
+        # Split on semicolon and execute statements that are not empty
+        statements = [s.strip() for s in sql.split(";") if s.strip()]
+        for stmt in statements:
+            try:
+                cursor.execute(stmt)
+            except MySQLError as e:
+                print(f"[DB INIT] Error executing statement: {e}; statement snippet: {stmt[:80]}")
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("[DB INIT] create_tables.sql executed successfully.")
+        return True
+    except Exception as e:
+        print(f"[DB INIT] Failed to run SQL file: {e}")
+        return False
+
+# -------------------------
+# 4. Write Config Files (improved logging + abs paths)
 # -------------------------
 def write_config_files(s3_bucket, user_pool_id, client_id, rds_info):
     aws_config = {
@@ -133,15 +200,19 @@ def write_config_files(s3_bucket, user_pool_id, client_id, rds_info):
         "db_port": 3306
     }
 
-    with open("./config/aws_config.json", "w") as f:
+    aws_path = "./config/aws_config.json"
+    db_path = "./config/db_config.json"
+    with open(aws_path, "w", encoding="utf-8") as f:
         json.dump(aws_config, f, indent=4)
-    with open("./config/db_config.json", "w") as f:
+    with open(db_path, "w", encoding="utf-8") as f:
         json.dump(db_config, f, indent=4)
 
-    print("[CONFIG] Config files created at ./config/aws_config.json and ./config/db_config.json")
+    print(f"[CONFIG] Config files created:")
+    print(f"  - {os.path.abspath(aws_path)}")
+    print(f"  - {os.path.abspath(db_path)}")
 
 # -------------------------
-# 5. Main Deploy Function
+# 5. Main Deploy Function (now runs DB init when endpoint available)
 # -------------------------
 def main():
     print("=== DEPLOYING CLOUDGALLERY INFRASTRUCTURE ===")
@@ -154,6 +225,16 @@ def main():
     rds_info = create_rds_instance()
 
     write_config_files(s3_bucket, user_pool_id, client_id, rds_info)
+
+    # If we have a real RDS endpoint, attempt to run create_tables.sql
+    db_host = rds_info[0]
+    if db_host and db_host != "pending" and db_host != "None":
+        print(f"[MAIN] Detected RDS host: {db_host} — attempting to initialize schema.")
+        ok = run_sql_file(db_host, rds_info[1], rds_info[2], rds_info[3], sql_path="./create_tables.sql")
+        if not ok:
+            print("[MAIN] DB init failed or was skipped. You may need to run create_tables.sql manually once DB is reachable.")
+    else:
+        print("[MAIN] RDS endpoint not ready (pending). Skipping DB initialization. Re-run DB init after endpoint is available.")
 
     print("\n=== DEPLOYMENT COMPLETE ===")
     print("Your app config files are ready in ./config/")

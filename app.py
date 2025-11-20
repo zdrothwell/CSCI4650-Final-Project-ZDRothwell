@@ -4,9 +4,32 @@ from flask import Flask, render_template, request, redirect, session
 import boto3
 import mysql.connector
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Prefer generated ./config/*.json when present to populate env vars used by the app.
+config_db_path = "./config/db_config.json"
+config_aws_path = "./config/aws_config.json"
+try:
+    if os.path.exists(config_db_path):
+        with open(config_db_path, "r", encoding="utf-8") as f:
+            dbconf = json.load(f)
+        os.environ.setdefault("RDS_HOST", str(dbconf.get("db_host", "")))
+        os.environ.setdefault("RDS_USER", str(dbconf.get("db_user", "")))
+        os.environ.setdefault("RDS_PASS", str(dbconf.get("db_password", "")))
+        os.environ.setdefault("RDS_DB", str(dbconf.get("db_name", "")))
+    if os.path.exists(config_aws_path):
+        with open(config_aws_path, "r", encoding="utf-8") as f:
+            awsconf = json.load(f)
+        os.environ.setdefault("AWS_REGION", str(awsconf.get("region", "")))
+        os.environ.setdefault("S3_BUCKET", str(awsconf.get("s3_bucket", "")))
+except Exception as e:
+    print(f"[CONFIG] Failed to load generated config files: {e}")
+
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get("FLASK_SECRET") or os.environ.get("SESSION_SECRET") or os.urandom(24)
 
 # ---- AWS CONFIG ----
 REGION = os.environ.get("AWS_REGION")
