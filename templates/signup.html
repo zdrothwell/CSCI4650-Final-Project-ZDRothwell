@@ -4,59 +4,142 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up – CloudGallery</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
     <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --accent: #0984e3;
+            --radius: 10px;
+            --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
         body {
-            background: #f5f5f5;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
-        .signup-container {
-            max-width: 450px;
-            margin: 60px auto;
-            background: white;
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.15);
+
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
         }
-        .form-title {
-            font-weight: 600;
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-top: 0;
         }
-        .btn-primary {
-            width: 100%;
-            margin-top: 15px;
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
-        a {
+
+        label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input {
+            padding: 0.7rem;
+            border-radius: var(--radius);
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: #fff;
+            padding: 0.7rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .login {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .login a {
+            color: var(--accent);
+            font-weight: bold;
             text-decoration: none;
+        }
+
+        .alert {
+            background: #ffdddd;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            color: #c0392b;
+            margin-bottom: 1rem;
+            border-left: 4px solid #e74c3c;
         }
     </style>
 </head>
 
 <body>
 
-<div class="signup-container">
-    <h3 class="form-title">Create Your Account</h3>
+<header>
+    <a class="logo" href="./index.html">CloudGallery</a>
+</header>
 
-    {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
+<div class="container">
+    <div class="card">
+        <h2>Create Your Account</h2>
 
-    <form action="/signup" method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required>
+        {% if error %}
+            <div class="alert">{{ error }}</div>
+        {% endif %}
 
-        <label>Password:</label>
-        <input type="password" name="password" required>
-        
-        <button type="submit">Sign Up</button>
-    </form>
+        <form action="/signup" method="POST">
+            <div>
+                <label>Username:</label>
+                <input type="text" name="username" required>
+            </div>
 
+            <div>
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
 
-    <p class="mt-3 text-center">
-        Already have an account?  
-        <a href="/login">Log in</a>
-    </p>
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <p class="login">
+            Already have an account?
+            <a href="./login.html">Log in</a>
+        </p>
+    </div>
 </div>
 
 </body>

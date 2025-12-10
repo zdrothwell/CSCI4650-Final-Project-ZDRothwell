@@ -3,21 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - CloudGallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --accent: #0984e3;
+            --radius: 10px;
+            --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input {
+            padding: 0.7rem;
+            border-radius: var(--radius);
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: #fff;
+            padding: 0.7rem;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .signup {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .signup a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
-    <h2>Login</h2>
-    <form action="/login" method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required>
 
-        <label>Password:</label>
-        <input type="password" name="password" required>
+<header>
+    <a class="logo" href="./index.html">CloudGallery</a>
+</header>
 
-        <button type="submit">Login</button>
-    </form>
+<div class="container">
+    <div class="card">
+        <h2>Login</h2>
 
-    <p>Don't have an account? 
-        <a href="/signup">Sign up here</a>
-    </p>
+        <form action="/login" method="POST">
+            <div>
+                <label>Username:</label>
+                <input type="text" name="username" required>
+            </div>
+
+            <div>
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p class="signup">
+            Don’t have an account? 
+            <a href="./signup.html">Sign up here</a>
+        </p>
+    </div>
+</div>
+
 </body>
 </html>

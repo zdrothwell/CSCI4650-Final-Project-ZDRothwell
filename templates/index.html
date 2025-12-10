@@ -1,11 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>CloudGallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --accent: #0984e3;
+            --radius: 10px;
+            --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: inline-block;
+        }
+
+        .buttons {
+            margin-top: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 0.7rem 1.2rem;
+            margin: 0 0.5rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Welcome to CloudGallery</h1>
-    <a href="/login">Login</a> |
-    <a href="/gallery">View Gallery</a>
+
+<header>
+    <a class="logo" href="./index.html">CloudGallery</a>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Welcome to CloudGallery</h2>
+        <p>Your personal cloud-powered image gallery.</p>
+
+        <div class="buttons">
+            <a href="./login.html" class="btn">Login</a>
+            <a href="./gallery.html" class="btn">View Gallery</a>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

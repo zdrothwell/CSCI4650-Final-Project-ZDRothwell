@@ -1,22 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2d3436;
+            --accent: #0984e3;
+            --radius: 10px;
+            --shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            background: var(--card);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .upload-btn {
+            background: var(--accent);
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 1rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: var(--radius);
+        }
+
+        .title {
+            margin: 0.4rem 0;
+            font-size: 1.2rem;
+        }
+
+        .description {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        small {
+            color: #636e72;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
+
 <body>
 
-<h1>Image Gallery</h1>
+<header>
+    <a class="logo" href="./index.html">CloudGallery</a>
+    <a class="upload-btn" href="./upload.html">Upload New Image</a>
+</header>
 
-<a href="/upload">Upload New Image</a><br><br>
+<div class="container">
 
-{% for img in images %}
-    <div style="margin-bottom: 20px;">
-        <h3>{{ img.title }}</h3>
-        <img src="{{ img.image_url }}" width="300"><br>
-        <p>{{ img.description }}</p>
-        <small>Uploaded by {{ img.user_email }} on {{ img.upload_date }}</small>
+    <div class="grid">
+        {% for img in images %}
+            <div class="card">
+                <img src="{{ img.image_url }}" alt="{{ img.title }}">
+                <h3 class="title">{{ img.title }}</h3>
+                <p class="description">{{ img.description }}</p>
+                <small>Uploaded by {{ img.user_email }} on {{ img.upload_date }}</small>
+            </div>
+        {% endfor %}
     </div>
-{% endfor %}
+
+</div>
 
 </body>
 </html>
