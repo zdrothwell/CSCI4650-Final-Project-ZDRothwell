@@ -10,7 +10,7 @@ from mysql.connector import Error as MySQLError
 # -------------------------
 # CONFIG
 # -------------------------
-region = "us-east-1"
+region = "us-east-2"
 os.makedirs("./config", exist_ok=True)
 
 # -------------------------
@@ -48,13 +48,6 @@ def create_s3_bucket(bucket_name):
                 print(f"[S3] Put PublicAccessBlock (all false) for {bucket_name}")
             except Exception as e:
                 print(f"[S3] Warning: could not change public access block: {e}")
-
-        # Make bucket ACL public-read so object list/head is allowed (DEV only)
-        try:
-            s3.put_bucket_acl(Bucket=bucket_name, ACL="public-read")
-            print(f"[S3] Bucket ACL set to public-read for {bucket_name}")
-        except Exception as e:
-            print(f"[S3] Warning: failed to set bucket ACL: {e}")
 
         # Apply permissive bucket policy to allow PutObject/PutObjectAcl/GetObject for objects in the bucket.
         policy = {
