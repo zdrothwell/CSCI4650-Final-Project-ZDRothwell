@@ -100,7 +100,7 @@
 <body>
 
 <header>
-    <a class="logo" href="./index.html">CloudGallery</a>
+    <a class="logo" href="/index">CloudGallery</a>
 </header>
 
 <div class="container">
@@ -108,22 +108,19 @@
         <h2>Login</h2>
 
         <form action="/login" method="POST">
-            <div>
-                <label>Username:</label>
-                <input type="text" name="username" required>
-            </div>
+           
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" required>
 
-            <div>
-                <label>Password:</label>
-                <input type="password" name="password" required>
-            </div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
 
-            <button type="submit">Login</button>
+            <button type="submit">Log In</button>
         </form>
 
         <p class="signup">
             Don’t have an account? 
-            <a href="./signup.html">Sign up here</a>
+            <a href="/signup">Sign up here</a>
         </p>
     </div>
 </div>

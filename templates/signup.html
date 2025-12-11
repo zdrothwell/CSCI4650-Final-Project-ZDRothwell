@@ -110,7 +110,7 @@
 <body>
 
 <header>
-    <a class="logo" href="./index.html">CloudGallery</a>
+    <a class="logo" href="/index">CloudGallery</a>
 </header>
 
 <div class="container">
@@ -122,22 +122,18 @@
         {% endif %}
 
         <form action="/signup" method="POST">
-            <div>
-                <label>Username:</label>
-                <input type="text" name="username" required>
-            </div>
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" required>
 
-            <div>
-                <label>Password:</label>
-                <input type="password" name="password" required>
-            </div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
 
-            <button type="submit">Sign Up</button>
+            <button type="submit">Create account</button>
         </form>
 
         <p class="login">
             Already have an account?
-            <a href="./login.html">Log in</a>
+            <a href="/login">Log in</a>
         </p>
     </div>
 </div>
