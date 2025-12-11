@@ -163,83 +163,31 @@ def upload_page():
 @app.route("/upload", methods=["POST"])
 def upload_image():
     if "username" not in session:
-        return redirect(url_for("login_page"))
+        return redirect("/login")
 
-    if not S3_BUCKET:
-        app.logger.error("S3_BUCKET is not configured. Check ./config/aws_config.json or environment.")
-        flash("Server misconfiguration: S3 bucket not configured.", "danger")
-        return redirect(url_for("upload_page"))
+    file = request.files["file"]
+    title = request.form["title"]
+    desc = request.form["description"]
+    username = session["username"]
 
-    file = request.files.get("file")
-    title = request.form.get("title", "")
-    desc = request.form.get("description", "")
-    username = session.get("username")
-
-    if not file or file.filename == "":
-        flash("No file selected.", "danger")
-        return redirect(url_for("upload_page"))
-
-    # Make filename safe for URL and S3 key
     unique_name = f"{uuid.uuid4()}_{file.filename}"
-    safe_key = quote(unique_name, safe="")
+    s3.upload_fileobj(file, S3_BUCKET, unique_name)
+    file_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{unique_name}"
 
-    # Ensure stream is at start
-    try:
-        file.stream.seek(0)
-    except Exception:
-        pass
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        """
+        INSERT INTO images (user_email, image_url, title, description) 
+        VALUES (%s, %s, %s, %s)
+        """,
+        (username, file_url, title, desc),
+    )
+    db.commit()
+    cursor.close()
+    db.close()
 
-    try:
-        s3.upload_fileobj(
-            file.stream,
-            S3_BUCKET,
-            safe_key,
-            ExtraArgs={
-                "ContentType": file.mimetype or "application/octet-stream",
-                "ACL": "public-read"  # DEV only; remove for private buckets and use presigned URLs
-            }
-        )
-    except ClientError as e:
-        app.logger.error(f"S3 upload failed (ClientError): {e.response if hasattr(e, 'response') else str(e)}")
-        flash("Failed to upload file to S3. Check server logs.", "danger")
-        return redirect(url_for("upload_page"))
-    except Exception as e:
-        app.logger.error(f"S3 upload failed: {e}")
-        flash("Failed to upload file to S3. Check server logs.", "danger")
-        return redirect(url_for("upload_page"))
-
-    file_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{safe_key}"
-
-    # Save to DB with error handling
-    try:
-        db = get_db()
-    except Exception as e:
-        app.logger.error(f"Database connection failed: {e}")
-        flash("Database connection failed. Check server logs.", "danger")
-        return redirect(url_for("upload_page"))
-
-    try:
-        cursor = db.cursor()
-        cursor.execute(
-            """
-            INSERT INTO images (user_email, image_url, title, description) 
-            VALUES (%s, %s, %s, %s)
-            """,
-            (username, file_url, title, desc),
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-    except Exception as e:
-        app.logger.error(f"DB insert failed: {e}")
-        try:
-            db.close()
-        except Exception:
-            pass
-        flash("Failed to save image metadata. Check server logs.", "danger")
-        return redirect(url_for("upload_page"))
-
-    return redirect(url_for("gallery"))
+    return redirect("/gallery")
 
 @app.route("/gallery")
 def gallery():
