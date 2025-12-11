@@ -133,23 +133,16 @@
         {% endif %}
 
         <form action="/upload" method="POST" enctype="multipart/form-data">
-            
-            <div>
-                <label>Title:</label>
-                <input type="text" name="title" required>
-            </div>
+            <label>Image File:</label><br>
+            <input type="file" name="file" required><br><br>
 
-            <div>
-                <label>Description:</label>
-                <textarea name="description" required></textarea>
-            </div>
+            <label>Title:</label><br>
+            <input type="text" name="title" required><br><br>
 
-            <div>
-                <label>Select Image File:</label>
-                <input type="file" name="image" accept="image/*" required>
-            </div>
+            <label>Description:</label><br>
+            <textarea name="description"></textarea><br><br>
 
-            <button type="submit">Upload Image</button>
+            <button type="submit">Upload</button>
         </form>
 
         <p class="back-link">
