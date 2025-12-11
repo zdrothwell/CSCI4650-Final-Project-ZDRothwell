@@ -22,6 +22,8 @@ After it has launched, click its name in the Instances list and click "Connect".
 
 This is where you will need the Access Key, Secret Key, and Region you defined/chose earlier. The fourth setting just leave blank and hit enter.
 
+Continue with the following commands after you have set up "aws configure".
+
 ```
 sudo dnf install python3-pip git -y
 git clone https://github.com/zdrothwell/CSCI4650-Final-Project-ZDRothwell.git website
