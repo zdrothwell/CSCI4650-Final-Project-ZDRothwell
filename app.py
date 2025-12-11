@@ -110,8 +110,6 @@ def signup_user():
 
         try:
             # Create the user in Cognito WITHOUT an email attribute so arbitrary usernames are allowed.
-            # Note: if your Cognito Pool is configured to require email as the username or UsernameAttributes
-            # includes "email", Cognito will still enforce an email format. Change Pool settings if needed.
             cognito.sign_up(
                 ClientId=COGNITO_CLIENT_ID,
                 Username=username,
