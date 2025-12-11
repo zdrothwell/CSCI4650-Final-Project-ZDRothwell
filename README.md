@@ -18,9 +18,9 @@ Once you have the Inbound Rules for the Security Group set, go ahead and click "
 
 After it has launched, click its name in the Instances list and click "Connect". Using EC2 Instance Connect, go ahead and hit the orange "Connect" button at the bottom right. Once you are in the terminal, set up the EC2 instance by running these commands:
 
-```aws configure```
+``` aws configure ```
 
-    - This is where you will need the Access Key, Secret Key, and Region you defined/chose earlier. The fourth setting just leave blank and hit enter.
+This is where you will need the Access Key, Secret Key, and Region you defined/chose earlier. The fourth setting just leave blank and hit enter.
 
 ```
 sudo dnf install python3-pip git -y
