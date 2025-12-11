@@ -49,29 +49,6 @@ def create_s3_bucket(bucket_name):
             except Exception as e:
                 print(f"[S3] Warning: could not change public access block: {e}")
 
-        # Apply permissive bucket policy to allow PutObject/PutObjectAcl/GetObject for objects in the bucket.
-        policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "AddPerm",
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": [
-                        "s3:PutObject",
-                        "s3:PutObjectAcl",
-                        "s3:GetObject"
-                    ],
-                    "Resource": f"arn:aws:s3:::{bucket_name}/*"
-                }
-            ]
-        }
-        try:
-            s3.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps(policy))
-            print(f"[S3] Bucket policy applied to {bucket_name}")
-        except Exception as e:
-            print(f"[S3] Failed to apply bucket policy: {e}")
-
         return bucket_name
     except Exception as e:
         print(f"[S3] Error creating bucket: {e}")
